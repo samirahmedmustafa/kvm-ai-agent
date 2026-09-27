@@ -5,6 +5,83 @@ from langgraph.graph import StateGraph, START, MessagesState
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 
+def get_vm_bridge_mac(vm: str):
+    """Get the MAC address of a bridge-network interface for a VM.
+
+    Args:
+        vm: Name of the virtual machine.
+
+    Returns:
+        str: JSON containing the VM name and MAC address.
+    """
+
+    import json
+    import subprocess
+    import xml.etree.ElementTree as ET
+
+    connection = "qemu+ssh://ansible@homeserver/system"
+
+    command = [
+        "virsh",
+        "-c",
+        connection,
+        "dumpxml",
+        vm,
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=True,
+        )
+
+        root = ET.fromstring(result.stdout)
+
+        for interface in root.findall("./devices/interface"):
+            if interface.get("type") != "bridge":
+                continue
+
+            mac = interface.find("mac")
+
+            if mac is not None:
+                address = mac.get("address")
+
+                if address:
+                    return json.dumps({
+                        "vm": vm,
+                        "mac": address,
+                    })
+
+        return json.dumps({
+            "vm": vm,
+            "mac": None,
+        })
+
+    except subprocess.TimeoutExpired as e:
+        raise TimeoutError(
+            f"Getting MAC address for VM '{vm}' timed out"
+        ) from e
+
+    except subprocess.CalledProcessError as e:
+        error = e.stderr.strip() if e.stderr else str(e)
+
+        raise RuntimeError(
+            f"Failed to get MAC address for VM '{vm}': {error}"
+        ) from e
+
+    except ET.ParseError as e:
+        raise RuntimeError(
+            f"Failed to parse libvirt XML for VM '{vm}': {e}"
+        ) from e
+
+    except Exception as e:
+        raise RuntimeError(
+            f"Unable to get MAC address for VM '{vm}': {e}"
+        ) from e
+
 def destroy_vm(vm: str):
     """Destroy a VM definition while preserving its disks and directory.
 
@@ -618,6 +695,7 @@ def get_vm_ip(vm: str) -> str:
 # -------------------------------------------------------------------
 
 tools = [
+    get_vm_bridge_mac,
     delete_vm,
     destroy_vm,
     create_vm_from_template,
