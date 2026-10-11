@@ -6,8 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from langchain_core.messages import HumanMessage
 
-from claude_agent_with_memory import react_graph, config
-
+from model_with_memory import react_graph, config, get_tools
 
 app = FastAPI()
 
@@ -85,18 +84,30 @@ async def process_text(text: str):
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
+    tools = get_tools()
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"result": ""},
+        context={"result": "", "tools": tools},
+    )
+
+@app.get("/example", response_class=HTMLResponse)
+async def example(request: Request):
+    # Example tools – replace with your real list
+    #tools = get_tools()
+    return templates.TemplateResponse(
+        request=request,
+        name="example.html",
+        context={"result": "", "tools": []},
     )
 
 @app.post("/", response_class=HTMLResponse)
 async def submit(request: Request, text: str = Form(...)):
+    timeout = 3000.0
     try:
         result = await asyncio.wait_for(
             process_text(text),
-            timeout=60.0,
+            timeout = timeout,
         )
 
         result_html = markdown.markdown(
@@ -110,7 +121,7 @@ async def submit(request: Request, text: str = Form(...)):
     except asyncio.TimeoutError:
         raise HTTPException(
             status_code=504,
-            detail="The request timed out after 30 seconds."
+            detail="The request timed out after {} seconds.".format(timeout)
         )
 
     except Exception as e:

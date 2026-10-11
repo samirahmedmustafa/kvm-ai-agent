@@ -1,5 +1,15 @@
 # kvm-ai-agent
 
+To designate what model you want to use modify the config.yaml as below
+
+provider: claude # ANTHROPIC_API_KEY in systemd service file below needs to be valid
+or
+provider: local # for local model
+
+- web based access thru http://YOUR_IP:8000/
+
+afterwards:
+
 manual start command
 
 ```
@@ -24,7 +34,7 @@ WorkingDirectory=/product/fastapi-app
 
 Environment="PATH=/product/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
-Environment="ANTHROPIC_API_KEY=ANTHROPIC-KEY"
+Environment="ANTHROPIC_API_KEY=anthropic-api-key"
 
 ExecStart=/product/.venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 
@@ -35,3 +45,4 @@ RestartSec=5
 WantedBy=multi-user.target
 
 ```
+

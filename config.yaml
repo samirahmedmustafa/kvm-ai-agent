@@ -1,0 +1,14 @@
+---
+provider: claude
+
+local:
+  model: "gpt-oss:20b"
+  ip: "192.168.1.100"
+  port: "8008"
+  timeout: 120
+  max_retries: 2
+
+claude:
+  model: "claude-opus-5-5"
+  timeout: 120
+  max_retries: 2
