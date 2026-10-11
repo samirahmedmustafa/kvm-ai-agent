@@ -810,7 +810,6 @@ def get_vm_ip(vm: str) -> str:
     Output:
         list of VMs and their respective IPs, MACs, NAMES
     """
-    print(vm)
     res = subprocess.run("virsh -c qemu+ssh://ansible@homeserver/system domifaddr {}".format(vm),
                          shell=True,
                          capture_output=True,
@@ -884,7 +883,6 @@ def load_config(filename: str) -> dict[str, Any]:
     if not isinstance(config, dict):
         raise ValueError("Configuration must contain a mapping/object.")
 
-    print("config: ", config)
     return config
 
 
@@ -893,7 +891,6 @@ def create_model(config: dict[str, Any]):
 
     if provider == "local":
         settings = config.get("local", {})
-        print("get_local_model :", get_local_model(**settings))
         return get_local_model(**settings)
 
     if provider == "claude":
@@ -1034,7 +1031,7 @@ Always use properly formatted Markdown.
 )
 
 def assistant(state: MessagesState):
-    print("\n===== MESSAGES SENT TO CLAUDE =====")
+    print("\n===== MESSAGES SENT TO MODEL =====")
 
     for i, message in enumerate(state["messages"]):
         print(f"\n--- MESSAGE {i} ---")
