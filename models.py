@@ -7,7 +7,6 @@ def get_local_model(
 ):
     from langchain_openai import ChatOpenAI
 
-    print(f"URL: http://{ip}:{port}/v1")
     return ChatOpenAI(
         model=model,
         base_url=f"http://{ip}:{port}/v1",
